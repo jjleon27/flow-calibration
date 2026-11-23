@@ -1,0 +1,16 @@
+name: Build GitBuilding site and deploy to Pages
+on: [push]
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install gitbuilding
+      - run: gitbuilding build-html
+      - uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: _site/
