@@ -81,9 +81,15 @@
         <div class="wrapper">
     <p>A syringe pump computes plunger speed from the <strong>syringe inner diameter</strong> you program. Real
 syringes — 3D-printed or commercial — have diameter tolerance, so the <strong>delivered flow can be
-off by several percent</strong> even though the pump is mechanically accurate. In our tests a "3 mL"
-syringe with a nominal 8.94 mm bore actually delivered <strong>+2.5 %</strong>; the corrected diameter was
-9.05 mm.</p>
+off by several percent</strong> even if the pump moves perfectly. In our tests a "3 mL" syringe with a
+nominal 8.94 mm bore actually delivered <strong>+2.5 %</strong>; the corrected diameter was 9.05 mm.</p>
+<blockquote>
+<p>Delivered flow = <em>drive-head speed</em> × <em>syringe cross-section</em>, so there are <strong>two</strong> error sources:
+the <strong>syringe diameter</strong> (below) and the <strong>pump mechanics</strong> (how far the plunger really travels).
+Gravimetry alone can't tell them apart. On a trustworthy pump (e.g. Harvard PHD 2000) the diameter
+correction below is enough; on a <strong>home-built pump</strong> calibrate the mechanics too — see
+<a href="index.html#two-errors-in-one-syringe-diameter-vs-pump-mechanics" title="">Two errors in one</a>.</p>
+</blockquote>
 <p>This gravimetric calibration needs <strong>only an analytical balance</strong> — no flow sensor. Water
 weighs ~1 g/mL, so <strong>1 mg ≈ 1 µL</strong>: the balance gives real dispensed volume directly.</p>
 <div class="codehilite"><pre><span></span><code>Q_real = mass / (ρ_water · time)
@@ -101,6 +107,8 @@ the pump → increase the diameter. Enter <code>D_real</code> and the pump deliv
 <li><strong>Parafilm</strong> + a small receiving tube (e.g. Eppendorf).</li>
 <li>Tweezers/tongs for handling calibration weights (skin oil weighs enough to matter).</li>
 <li>The syringe pump (this project).</li>
+<li><em>For the pump-mechanics check (optional, see below):</em> a <strong>dial indicator</strong> or digital
+  caliper (0.01 mm) to measure drive-head travel.</li>
 </ul>
 <h2 id="step-0-calibrate-the-balance-once">Step 0 — Calibrate the balance (once)</h2>
 <ol>
@@ -151,6 +159,100 @@ the result). Move the capillary out, press the parafilm closed over the hole, an
 <h2 id="step-4-verify-linearity">Step 4 — Verify linearity</h2>
 <p>Repeat at <strong>2–3 flows</strong> (e.g. 500 / 1000 / 2000 µL/h) with the corrected diameter. If they all
 give the same <code>D_real</code>, the calibration is solid and flow-independent.</p>
+<hr />
+<h2 id="two-errors-in-one-syringe-diameter-vs-pump-mechanics">Two errors in one: syringe diameter vs. pump mechanics</h2>
+<p>Gravimetry measures the <strong>delivered volume</strong> — the end-to-end truth. But that number lumps two
+physically independent error sources together (EURAMET CG-27; IEC 60601-2-24):</p>
+<div class="codehilite"><pre><span></span><code>delivered flow  =  drive-head speed   ×   syringe cross-section area
+                   └─ pump mechanics ─┘    └── syringe geometry ──┘
+</code></pre></div>
+
+<ul>
+<li><strong>Syringe geometry</strong> (the diameter): bore tolerance is <strong>1 % (large syringes) to 3 % (small)</strong>.
+  Scales flow by a <em>constant factor</em>, independent of flow rate and of position along the barrel.</li>
+<li><strong>Pump mechanics</strong> (how far the plunger actually travels per command): lead-screw pitch,
+  steps/mm, microstep linearity, coupling backlash/compliance. Commercial drivers spec <strong>±1–2 %</strong>.</li>
+</ul>
+<p>The diameter-only calibration above (Steps 1–4) folds <strong>both</strong> into an <em>effective diameter</em>. That
+is fine when the pump mechanics are trustworthy — e.g. a <strong>Harvard PHD 2000 (±0.35 %)</strong>. For a
+<strong>home-built pump</strong> (stepper + lead screw) you cannot assume that: a steps/mm error disguises
+itself as a diameter error, and gravimetry alone <strong>cannot tell them apart</strong> (both scale flow by the
+same constant factor).</p>
+<h3 id="how-the-pump-is-calibrated-in-the-literature">How the pump is calibrated in the literature</h3>
+<p>Most open-hardware pump papers <strong>do not measure the plunger travel directly</strong> — they compute the
+step size from geometry and finish with an <strong>end-to-end gravimetric calibration that folds mechanics
+<em>and</em> geometry into a single constant</strong>:</p>
+<ul>
+<li><strong>Geometric starting point</strong> — steps (or microsteps) per unit volume follow from the drivetrain:
+  <code>µsteps/µL = (steps_per_rev × microstepping) / (π · (ID/2)² · lead)</code>
+  e.g. a Marlin pump with 200 steps/rev, 16 µsteps, an 8 mm/rev screw and a BD 10 mL syringe
+  (ID 14.5 mm) → <strong>2.42 µstep/µL</strong>, set in firmware with <code>M92 E2.42</code> (Baden et al., 2024).</li>
+<li><strong>Gravimetric finish</strong> — Wijnen, Hunt, Anzalone &amp; Pearce (<em>Open-Source Syringe Pump Library</em>,
+  PLoS ONE 2014): set the calibration to a nominal value, <strong>dispense a volume twice, weigh the
+  second push, divide actual / commanded, enter the ratio, repeat 3×</strong>. One number now captures
+  the whole chain.</li>
+</ul>
+<p>The catch — and the whole point of this section — is that <strong>this does not separate the two errors</strong>.
+A lead-screw whose real pitch differs from nominal is indistinguishable from a wrong bore, so it is
+silently absorbed into an <em>effective, per-pump inner diameter</em> (several 3D-printed-pump studies
+report using a device-specific ID for each pump for exactly this reason). That is fine if you only
+want accurate flow. It is <strong>not</strong> fine if you want to know <em>which part</em> is off — for that you must
+measure the travel on its own.</p>
+<h3 id="separating-the-two-the-displacement-method">Separating the two — the "displacement method"</h3>
+<p>EURAMET CG-27 §4.3.3 names this the <strong>displacement method</strong>: mount a mirror on the pusher block and
+measure its <strong>travelled distance directly</strong>, independent of the syringe — <code>Q = (x₂−x₁)/Δt · πr²</code> —
+which captures the <em>"unloaded movement of the syringe driver head"</em> (Batista et al., 2020 [1]). The
+lab-grade version uses a <strong>laser interferometer</strong> (nanometre resolution); the workshop version is the
+same measurand with a <strong>dial indicator / caliper</strong> (~0.01 mm) — the familiar <strong>3D-printer axis
+steps/mm calibration</strong> applied to the pump carriage (Method A). If you have a reference pump instead
+of a dial indicator, Method B gets you there without disassembly.</p>
+<blockquote>
+<p><strong>Caveat (from the same guide).</strong> The displacement method measures the <em>unloaded</em> travel. With a
+real syringe, <strong>rubber-stopper compression and drivetrain compliance</strong> add a further error the
+travel alone cannot see. So the full picture is <strong>travel (mechanics) + gravimetry (loaded,
+real syringe)</strong>: the gap between them <em>is</em> the stopper/compliance contribution.</p>
+</blockquote>
+<h4 id="method-a-measure-plunger-travel-directly-no-syringe">Method A — Measure plunger travel directly (no syringe)</h4>
+<p>This checks the mechanics on their own: <em>does the drive head move the distance you command?</em></p>
+<ol>
+<li>Mount a <strong>dial indicator</strong> (or digital caliper) against the drive head / carriage and <strong>zero it</strong>.
+   Remove the syringe or leave it empty — this test is purely mechanical.</li>
+<li>Command a <strong>long move</strong> of known length <code>L_set</code> (e.g. <strong>20.00 mm</strong>). Long travel makes the
+   reading error (±0.01–0.02 mm) a negligible fraction.</li>
+<li>Read the <strong>actual travel <code>L_real</code></strong> off the indicator.</li>
+<li>Mechanical error = <code>L_real / L_set − 1</code>. Correct it (inverse):
+   - Firmware with a <strong>steps/mm</strong> constant → <code>steps_per_mm_corr = steps_per_mm × (L_real / L_set)</code>.
+   - Repeat over the <strong>full stroke</strong> (0→20, 20→40 mm …) to catch lead-screw non-uniformity.</li>
+<li><em>(Optional) Backlash:</em> command a move, then <strong>reverse</strong>; the dead distance before the indicator
+   starts moving is the backlash. Only matters if you ever reverse — infusion-only runs don't.</li>
+</ol>
+<p>After this the pump delivers the commanded <strong>distance</strong>. Any gravimetric error that remains is then
+genuinely the <strong>syringe diameter</strong>, which you fix with Steps 1–4.</p>
+<h4 id="method-b-cross-check-against-a-reference-pump-same-syringe">Method B — Cross-check against a reference pump (same syringe)</h4>
+<p>If you have a trustworthy reference pump (Harvard PHD 2000) you can split the error without a dial
+indicator, because the <strong>syringe geometry is common to both pumps and cancels</strong>:</p>
+<ol>
+<li>Run the <strong>same syringe</strong> on the <strong>reference pump</strong>, gravimetric → error <code>ε_ref</code> ≈ syringe
+   geometry (reference mechanics are ±0.35 %).</li>
+<li>Run the <strong>same syringe</strong> on the <strong>pump under test</strong>, same <code>Q_set</code>, gravimetric → error <code>ε_total</code>.</li>
+<li><strong>Pump-mechanics error ≈ <code>ε_total − ε_ref</code>.</strong></li>
+</ol>
+<p>Method A is absolute and needs only a caliper; Method B needs a reference pump but no disassembly.
+Use <strong>A to calibrate a new pump build</strong>, <strong>B to audit a pump already in service</strong>.</p>
+<h3 id="order-of-operations">Order of operations</h3>
+<ol>
+<li><strong>First calibrate the mechanics</strong> (Method A) → the pump moves the true distance.</li>
+<li><strong>Then calibrate the diameter</strong> (Steps 1–4) → the flow is true.</li>
+</ol>
+<p>In this order the diameter you end up with is the <em>real</em> bore, not a number that silently absorbs a
+steps/mm error.</p>
+<blockquote>
+<p><strong>Mechanism cycle.</strong> On a lead-screw pump the delivered flow carries a slow periodic ripple at the
+screw's revolution period ("mechanism cycle time", EURAMET CG-27). Time each gravimetric
+collection over <strong>≥ 2 full revolutions</strong> of the screw to average it out. This ripple is expected —
+it is not a leak or a bubble.</p>
+</blockquote>
+<hr />
 <h2 id="practical-tips-what-ruins-a-run">Practical tips (what ruins a run)</h2>
 <ul>
 <li><strong>Evaporation</strong>: at 1000 µL/h an open tube loses ~1 mg/min — always parafilm, and weigh
@@ -171,7 +273,51 @@ reports the sensor factor if you pass <code>--sensor-ulh &lt;reading&gt;</code>.
 <p>For the flow-sensor hardware, firmware and high-rate acquisition, see the Rio controller:
 ➡️ <strong><a href="https://github.com/wenzel-lab/rio-controller" target="_blank" title="">wenzel-lab/rio-controller</a></strong> (pressure/flow module).</p>
 <hr />
-<p><em>Tool: <code>calibrate.py</code> · rev 2026-11-19</em></p>
+<h2 id="references">References</h2>
+<p><strong>Metrology standards &amp; guides</strong></p>
+<ul>
+<li><strong>EURAMET</strong>, <em>Calibration Guide No. 27 — Guidelines for the Calibration of Drug Delivery Devices
+  and Infusion Device Analysers</em>, v2.0 (02/2026). E. Batista (IPQ), M. Benkova (CMI), H. Bissig
+  (METAS), O. Büker (RISE). The master guide: gravimetric method (§4.3.1), <strong>displacement method
+  (§4.3.3)</strong>, front-tracking (§4.3.2), micro-PIV (§4.3.4), mechanism cycle time, response time.
+  <a href="https://www.euramet.org/Media/docs/Publications/calguides/I-CAL-GUI-027_Calibration_Guide_No._27_web.pdf">https://www.euramet.org/Media/docs/Publications/calguides/I-CAL-GUI-027_Calibration_Guide_No._27_web.pdf</a></li>
+<li><strong>IEC 60601-2-24</strong>, <em>Particular requirements for the basic safety and essential performance of
+  infusion pumps and controllers</em> — trumpet curve (2/5/11/19/31-min windows), start-up graph,
+  short-term flow accuracy.</li>
+<li><strong>AAMI TIR101:2021</strong>, <em>Fluid delivery performance testing for infusion pumps.</em></li>
+<li><strong>ISO 7886-2</strong>, syringe cross-sectional-area tolerances (≈1 % large, 3 % small syringes).</li>
+</ul>
+<p><strong>Primary methods (peer-reviewed)</strong></p>
+<ol>
+<li><strong>E. Batista et al.</strong> (2020), <em>"Development of an experimental setup for microflow measurement
+   using interferometry"</em>, <strong>Flow Measurement and Instrumentation 75, 101789</strong> — the displacement
+   method behind §4.3.3 (mirror on the pusher block; 5000 mL/h → 1.6 nL/min, U = 0.9–2 %).
+   <a href="https://www.sciencedirect.com/science/article/pii/S0955598620301345">https://www.sciencedirect.com/science/article/pii/S0955598620301345</a></li>
+<li><strong>H. Bissig et al.</strong> (2015), <em>"Primary standards for measuring flow rates from 100 nL/min to
+   1 mL/min — gravimetric principle"</em>, <strong>Biomed. Tech. 60(4), 301–316</strong> (METAS) — the primary
+   gravimetric standard the guide builds on.</li>
+<li><strong>E. Batista, R. F. Martins, V. Silvério, I. Godinho</strong> (2025), <em>"Advancing calibration techniques
+   for accurate micro and nanoflow measurements"</em>, <strong>Frontiers in Nanotechnology</strong> — recent review
+   comparing gravimetric, interferometric, front-track and pending-drop methods with uncertainties.
+   <a href="https://doi.org/10.3389/fnano.2025.1600426">https://doi.org/10.3389/fnano.2025.1600426</a></li>
+</ol>
+<p><strong>Open-hardware pump calibration</strong></p>
+<ol start="4">
+<li><strong>B. Wijnen, E. J. Hunt, G. C. Anzalone, J. M. Pearce</strong> (2014), <em>"Open-Source Syringe Pump
+   Library"</em>, <strong>PLoS ONE 9(9):e107216</strong> — end-to-end "push twice, take the ratio" volumetric
+   calibration. <a href="https://doi.org/10.1371/journal.pone.0107216">https://doi.org/10.1371/journal.pone.0107216</a></li>
+<li><strong>Baden et al.</strong> (2024), <em>"3D Printer-Controlled Syringe Pumps…"</em>, <strong>arXiv:2402.04354</strong> —
+   <code>µsteps/µL</code> from drivetrain geometry; Marlin <code>M92 E</code> + gravimetric finish.
+   <a href="https://arxiv.org/abs/2402.04354">https://arxiv.org/abs/2402.04354</a></li>
+</ol>
+<blockquote>
+<p><strong>About EURAMET / IPQ.</strong> EURAMET is the European Association of National Metrology Institutes — the
+body that defines SI-traceable measurement in Europe. IPQ (<em>Instituto Português da Qualidade</em>) is
+Portugal's national metrology institute; <strong>Elsa Batista (IPQ)</strong> leads both the guide and the
+displacement-method papers above.</p>
+</blockquote>
+<hr />
+<p><em>Tool: <code>calibrate.py</code> · rev 2026-11-24</em></p>
     </div>
 </div>
 <footer class="site-footer">
