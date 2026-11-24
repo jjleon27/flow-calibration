@@ -1,14 +1,15 @@
 Title: Flow calibration (gravimetric)
 Authors:
   - Pierre Padilla-Huamantinco
-  - Tomás Astudillo Inostroza
-  - Matías Hurtado Labarca
+  - Matias Hurtado-Labarca
+  - Christie Nel
+  - Tomas Astudillo
+  - Wladimir Araya
+  - Juan José Leon
+  - Josefina Belen Reyes Arroyo
   - Tobias Wenzel
 Email: tobias.wenzel@uc.cl
 License: CERN-OHL-1.2
-primaryColor: '#f1502f'
-secondaryColor: '#cccccc'
-hoverColor: '#555555'
 Navigation:
   - Link: index.md
     Title: Calibrate the flow
