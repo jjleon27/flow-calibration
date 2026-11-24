@@ -72,23 +72,27 @@
     <div class="grid">
       <div class="field">
         <label for="mq">Flow Q <span class="hint">(µL/h)</span></label>
-        <input id="mq" type="number" step="1" inputmode="decimal" value="6000">
+        <input id="mq" type="number" step="1" inputmode="decimal" value="3000">
       </div>
       <div class="field">
-        <label for="mt">Run time <span class="hint">(min)</span></label>
-        <input id="mt" type="number" step="0.1" inputmode="decimal" value="5">
+        <label for="mt">Run time <span class="hint">(min — longer = less error)</span></label>
+        <input id="mt" type="number" step="0.1" inputmode="decimal" value="15">
       </div>
       <div class="field">
-        <label for="md">Diameter D <span class="hint">(mm, programmed)</span></label>
+        <label for="md">Syringe diameter D <span class="hint">(mm, programmed)</span></label>
         <input id="md" type="number" step="0.01" inputmode="decimal" value="9.05">
       </div>
       <div class="field">
         <label for="mrod">Lead-screw pitch <span class="hint">(mm, current THREADROD)</span></label>
         <input id="mrod" type="number" step="0.1" inputmode="decimal" value="2.0">
       </div>
-      <div class="field full">
-        <label for="mreal">Measured travel L_real <span class="hint">(mm, caliper/indicator)</span></label>
-        <input id="mreal" type="number" step="0.01" inputmode="decimal" placeholder="leave blank to just get the expected travel">
+      <div class="field">
+        <label for="mstart">Start reading <span class="hint">(mm, caliper, before)</span></label>
+        <input id="mstart" type="number" step="0.01" inputmode="decimal" placeholder="e.g. 18.99">
+      </div>
+      <div class="field">
+        <label for="mend">End reading <span class="hint">(mm, caliper, after)</span></label>
+        <input id="mend" type="number" step="0.01" inputmode="decimal" placeholder="after the run">
       </div>
     </div>
 
@@ -101,12 +105,13 @@
     </div>
 
     <div class="rows">
+      <div class="row" id="realrow" style="display:none"><span class="k">Measured travel (end − start)</span><span class="v" id="realv">—</span></div>
       <div class="row"><span class="k">Mechanical error vs expected</span><span class="v"><span class="pill" id="merrpill">—</span></span></div>
       <div class="row" id="rodrow" style="display:none"><span class="k">Corrected lead-screw pitch → set on the pump</span><span class="v" id="rodv">—</span></div>
     </div>
 
-    <div class="formula">L_set = Q·t / (π·(D/2)²) &nbsp;·&nbsp; THREADROD_corr = THREADROD·(L_real / L_set)</div>
-    <p class="note" id="mnote">If L_real ≈ L_set the mechanics are good — the diameter you get in Step 2 is then the real bore.</p>
+    <div class="formula">L_set = Q·t / (π·(D/2)²) &nbsp;·&nbsp; L_real = |end − start| &nbsp;·&nbsp; THREADROD_corr = THREADROD·(L_real / L_set)</div>
+    <p class="note" id="mnote">Run ≥ 15 min (the longer it runs, the smaller the % reading error). If L_real ≈ L_set the mechanics are good — the diameter you get in Step 2 is then the real bore.</p>
   </div>
 
   <!-- ===================== STEPS 2–5 — GRAVIMETRIC ===================== -->
@@ -176,14 +181,17 @@
   function area(d){return Math.PI*(d/2)*(d/2);}  // mm²
   function mech(){
     const q=parseFloat($("mq").value), t=parseFloat($("mt").value),
-      d=parseFloat($("md").value), rod=parseFloat($("mrod").value), real=parseFloat($("mreal").value);
+      d=parseFloat($("md").value), rod=parseFloat($("mrod").value),
+      s=parseFloat($("mstart").value), e=parseFloat($("mend").value);
     const ok=[q,t,d].every(x=>isFinite(x)&&x>0);
     if(!ok){$("lset").textContent="— mm";$("lsetsub").textContent="set Q, time and diameter above";
-      $("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";return;}
-    const lset=(q*(t/60))/area(d);               // µL·/mm² = mm  (1 µL = 1 mm³)
+      $("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";return;}
+    const lset=(q*(t/60))/area(d);               // µL / mm² = mm  (1 µL = 1 mm³)
     $("lset").textContent=lset.toFixed(2)+" mm";
     $("lsetsub").textContent="at "+q+" µL/h · "+t+" min · Ø"+d.toFixed(2)+" mm";
+    const real=(isFinite(s)&&isFinite(e))?Math.abs(e-s):NaN;   // L_real = |end − start|
     if(isFinite(real)&&real>0){
+      $("realrow").style.display="flex";$("realv").textContent=real.toFixed(2)+" mm";
       const err=100*(real/lset-1);
       const ep=$("merrpill");ep.textContent=fmtPct(err);ep.className="pill "+(Math.abs(err)<=1?"ok":"hi");
       if(isFinite(rod)&&rod>0){
@@ -191,9 +199,9 @@
         $("rodrow").style.display="flex";
         $("rodv").innerHTML=rodc.toFixed(3)+' mm <span class="muted">(was '+rod.toFixed(2)+")</span>";
       }else{$("rodrow").style.display="none";}
-    }else{$("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";}
+    }else{$("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";}
   }
-  ["mq","mt","md","mrod","mreal"].forEach(id=>$(id).addEventListener("input",mech));
+  ["mq","mt","md","mrod","mstart","mend"].forEach(id=>$(id).addEventListener("input",mech));
 
   /* ---------- Steps 2–5 — gravimetric ---------- */
   const SYR = {
