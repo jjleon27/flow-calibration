@@ -122,10 +122,10 @@ travel comes from <code>flow × time</code>:</p>
 <li>Mount a <strong>caliper or dial indicator</strong> against the drive head / carriage and <strong>zero it</strong>. Keep a
    syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
    syringe with the mirror on the pusher block; a normal syringe is fine here).</li>
-<li>Set the <strong>diameter D</strong> and a <strong>flow Q</strong> and run for an <strong>exact time t</strong> (<code>set_diameter</code>, <code>set_flow</code>,
+<li>Set the <strong>diameter D</strong> and a <strong>flow Q</strong> and run for <strong>5 minutes</strong> (<code>set_diameter</code>, <code>set_flow</code>,
    <code>set_state</code> in <code>pump_comm.py</code>). The commanded travel is
    <code>L_set = Q · t / (π · (D/2)²)</code>
-   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 15 min → <strong>L_set ≈ 23 mm</strong> (keep units
+   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 5 min → <strong>L_set ≈ 7.8 mm</strong> (keep units
    consistent).</li>
 <li>Read the <strong>actual travel <code>L_real</code></strong>. Repeat 2–3× and average to shrink the reading scatter.</li>
 <li>If <code>L_real ≈ L_set</code>, the mechanics are good. Otherwise correct the <strong>lead-screw pitch</strong> (<code>THREADROD</code>,
@@ -171,8 +171,9 @@ closed over the hole, and weigh immediately → <code>m_full</code>. Δm = m_ful
 
 <p>Enter <code>D_real</code> on the pump. Repeat <strong>one point</strong> to confirm Q_real ≈ Q_set.</p>
 <h2 id="step-5-verify-linearity">Step 5 — Verify linearity</h2>
-<p>Repeat at <strong>2–3 flows</strong> (e.g. 500 / 1000 / 2000 µL/h) with the corrected diameter. If they all give
-the same <code>D_real</code>, the calibration is solid and flow-independent.</p>
+<p>Repeat at <strong>at least 3 flow points — the ones you'll actually use — with 3 measurements each</strong> (e.g.
+500 / 1000 / 2000 µL/h ×3), following EURAMET CG-27. The 3 repeats give the repeatability; if all
+points return the same <code>D_real</code>, the calibration is solid and flow-independent.</p>
 <hr />
 <h2 id="background-optional">Background (optional)</h2>
 <p>Delivered flow = <strong>drive-head speed × syringe cross-section</strong>. Gravimetry sees only the product, so a
