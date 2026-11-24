@@ -49,12 +49,12 @@ travel comes from `flow × time`:
 1. Mount a **caliper or dial indicator** against the drive head / carriage and **zero it**. Keep a
    syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
    syringe with the mirror on the pusher block; a normal syringe is fine here).
-2. Set the **diameter D** and a **flow Q** and run for an **exact time t** (`set_diameter`, `set_flow`,
+2. Set the **diameter D** and a **flow Q** and run for **5 minutes** (`set_diameter`, `set_flow`,
    `set_state` in `pump_comm.py`). The commanded travel is
    ```
    L_set = Q · t / (π · (D/2)²)
    ```
-   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 15 min → **L_set ≈ 23 mm** (keep units
+   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 5 min → **L_set ≈ 7.8 mm** (keep units
    consistent).
 3. Read the **actual travel `L_real`**. Repeat 2–3× and average to shrink the reading scatter.
 4. If `L_real ≈ L_set`, the mechanics are good. Otherwise correct the **lead-screw pitch** (`THREADROD`,
@@ -110,8 +110,9 @@ Enter `D_real` on the pump. Repeat **one point** to confirm Q_real ≈ Q_set.
 
 ## Step 5 — Verify linearity
 
-Repeat at **2–3 flows** (e.g. 500 / 1000 / 2000 µL/h) with the corrected diameter. If they all give
-the same `D_real`, the calibration is solid and flow-independent.
+Repeat at **at least 3 flow points — the ones you'll actually use — with 3 measurements each** (e.g.
+500 / 1000 / 2000 µL/h ×3), following EURAMET CG-27. The 3 repeats give the repeatability; if all
+points return the same `D_real`, the calibration is solid and flow-independent.
 
 ---
 
