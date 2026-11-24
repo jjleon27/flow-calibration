@@ -118,8 +118,9 @@ the <strong>displacement method</strong> of EURAMET CG-27 §4.3.3 — lab versio
 workshop version uses a dial indicator (command a known move, measure the real travel, correct the
 firmware's steps/mm — exactly how a 3D-printer axis is calibrated).</p>
 <ol>
-<li>Mount a <strong>dial indicator</strong> (or caliper) against the drive head / carriage and <strong>zero it</strong>. Run the
-   pump empty — this test is purely mechanical.</li>
+<li>Mount a <strong>dial indicator</strong> (or caliper) against the drive head / carriage and <strong>zero it</strong>. Keep a
+   syringe mounted and dispensing to waste, as in a normal run — the metrology labs do this with a
+   rigid glass/steel syringe (the mirror goes on the pusher block); a normal syringe is fine here.</li>
 <li>Command a <strong>long move</strong> <code>L_set</code> (e.g. <strong>20.00 mm</strong>) so the ±0.01 mm reading error is negligible.</li>
 <li>Read the <strong>actual travel <code>L_real</code></strong>.</li>
 <li>Correct the firmware constant: <code>steps_per_mm_corr = steps_per_mm × (L_real / L_set)</code>. Repeat over
