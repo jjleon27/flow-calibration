@@ -113,21 +113,27 @@ increase the diameter. The calculator <code>calibrate.py</code> does the math; y
 <li><strong>Verify</strong>: place a known weight (e.g. 100 g) and check it reads correctly.</li>
 </ol>
 <h2 id="step-1-calibrate-the-pump-mechanics-plunger-travel">Step 1 — Calibrate the pump mechanics (plunger travel)</h2>
-<p>First check the mechanics on their own: <em>does the drive head move the distance you command?</em> This is
-the <strong>displacement method</strong> of EURAMET CG-27 §4.3.3 — lab version uses a laser interferometer;
-workshop version uses a dial indicator (command a known move, measure the real travel, correct the
-firmware's steps/mm — exactly how a 3D-printer axis is calibrated).</p>
+<p>First check the mechanics on their own: <em>does the drive head move the distance it should?</em> This is the
+<strong>displacement method</strong> of EURAMET CG-27 §4.3.3 (lab version: laser interferometer; workshop version:
+a caliper or dial indicator — exactly how a 3D-printer axis's steps/mm is calibrated).</p>
+<p>This pump has <strong>no "move N mm" command</strong> — you set a <strong>diameter</strong> and a <strong>flow</strong> and let it run, so the
+travel comes from <code>flow × time</code>:</p>
 <ol>
-<li>Mount a <strong>dial indicator</strong> (or caliper) against the drive head / carriage and <strong>zero it</strong>. Keep a
-   syringe mounted and dispensing to waste, as in a normal run — the metrology labs do this with a
-   rigid glass/steel syringe (the mirror goes on the pusher block); a normal syringe is fine here.</li>
-<li>Command a <strong>long move</strong> <code>L_set</code> (e.g. <strong>20.00 mm</strong>) so the ±0.01 mm reading error is negligible.</li>
-<li>Read the <strong>actual travel <code>L_real</code></strong>.</li>
-<li>Correct the firmware constant: <code>steps_per_mm_corr = steps_per_mm × (L_real / L_set)</code>. Repeat over
-   the <strong>full stroke</strong> (0→20, 20→40 mm …) to catch lead-screw non-uniformity.</li>
+<li>Mount a <strong>caliper or dial indicator</strong> against the drive head / carriage and <strong>zero it</strong>. Keep a
+   syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
+   syringe with the mirror on the pusher block; a normal syringe is fine here).</li>
+<li>Set the <strong>diameter D</strong> and a <strong>flow Q</strong> and run for an <strong>exact time t</strong> (<code>set_diameter</code>, <code>set_flow</code>,
+   <code>set_state</code> in <code>pump_comm.py</code>). The commanded travel is
+   <code>L_set = Q · t / (π · (D/2)²)</code>
+   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 15 min → <strong>L_set ≈ 23 mm</strong> (keep units
+   consistent).</li>
+<li>Read the <strong>actual travel <code>L_real</code></strong>. Repeat 2–3× and average to shrink the reading scatter.</li>
+<li>If <code>L_real ≈ L_set</code>, the mechanics are good. Otherwise correct the <strong>lead-screw pitch</strong> (<code>THREADROD</code>,
+   via <code>set_threadrod</code>): <code>threadrod_corr = threadrod × (L_real / L_set)</code>. The firmware derives steps/mm
+   from <code>microstep</code>, <code>gearbox</code> and <code>threadrod</code>, so <code>threadrod</code> is the knob to trim.</li>
 </ol>
-<p><strong>No dial indicator?</strong> A <strong>caliper — or even a ruler</strong> — measures the same travel; just use a
-<strong>longer move</strong> (e.g. 50–100 mm) so the coarser reading stays a small fraction of the distance.</p>
+<p><strong>No caliper?</strong> Even a <strong>ruler</strong> works — just run longer so the move is ~50–100 mm and the coarser
+reading stays a small fraction of the distance.</p>
 <h2 id="step-2-prepare-the-gravimetric-run">Step 2 — Prepare the gravimetric run</h2>
 <ol>
 <li>Fill the syringe, <strong>purge all air</strong> (a single bubble ruins a run). Mount it in the pump.</li>
