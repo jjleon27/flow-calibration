@@ -1,5 +1,7 @@
 name: Build GitBuilding site and deploy to Pages
 on: [push]
+permissions:
+  contents: write
 jobs:
   build_and_deploy:
     runs-on: ubuntu-22.04
