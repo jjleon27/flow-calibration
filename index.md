@@ -51,12 +51,8 @@ firmware's steps/mm — exactly how a 3D-printer axis is calibrated).
 4. Correct the firmware constant: `steps_per_mm_corr = steps_per_mm × (L_real / L_set)`. Repeat over
    the **full stroke** (0→20, 20→40 mm …) to catch lead-screw non-uniformity.
 
-**No dial indicator?** Cross-check against a reference pump instead: run the **same syringe** on a
-trusted pump (e.g. Harvard PHD 2000, ±0.35 %) and on yours — the syringe geometry cancels, so the
-**difference in gravimetric error is the mechanics**.
-
-> The travel check sees only *unloaded* movement; with a real syringe, stopper compression and
-> drivetrain compliance add a little more, which the gravimetric step below then absorbs.
+**No dial indicator?** A **caliper — or even a ruler** — measures the same travel; just use a
+**longer move** (e.g. 50–100 mm) so the coarser reading stays a small fraction of the distance.
 
 ## Step 2 — Prepare the gravimetric run
 
