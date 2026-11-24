@@ -39,21 +39,30 @@ increase the diameter. The calculator `calibrate.py` does the math; you just typ
 
 ## Step 1 — Calibrate the pump mechanics (plunger travel)
 
-First check the mechanics on their own: *does the drive head move the distance you command?* This is
-the **displacement method** of EURAMET CG-27 §4.3.3 — lab version uses a laser interferometer;
-workshop version uses a dial indicator (command a known move, measure the real travel, correct the
-firmware's steps/mm — exactly how a 3D-printer axis is calibrated).
+First check the mechanics on their own: *does the drive head move the distance it should?* This is the
+**displacement method** of EURAMET CG-27 §4.3.3 (lab version: laser interferometer; workshop version:
+a caliper or dial indicator — exactly how a 3D-printer axis's steps/mm is calibrated).
 
-1. Mount a **dial indicator** (or caliper) against the drive head / carriage and **zero it**. Keep a
-   syringe mounted and dispensing to waste, as in a normal run — the metrology labs do this with a
-   rigid glass/steel syringe (the mirror goes on the pusher block); a normal syringe is fine here.
-2. Command a **long move** `L_set` (e.g. **20.00 mm**) so the ±0.01 mm reading error is negligible.
-3. Read the **actual travel `L_real`**.
-4. Correct the firmware constant: `steps_per_mm_corr = steps_per_mm × (L_real / L_set)`. Repeat over
-   the **full stroke** (0→20, 20→40 mm …) to catch lead-screw non-uniformity.
+This pump has **no "move N mm" command** — you set a **diameter** and a **flow** and let it run, so the
+travel comes from `flow × time`:
 
-**No dial indicator?** A **caliper — or even a ruler** — measures the same travel; just use a
-**longer move** (e.g. 50–100 mm) so the coarser reading stays a small fraction of the distance.
+1. Mount a **caliper or dial indicator** against the drive head / carriage and **zero it**. Keep a
+   syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
+   syringe with the mirror on the pusher block; a normal syringe is fine here).
+2. Set the **diameter D** and a **flow Q** and run for an **exact time t** (`set_diameter`, `set_flow`,
+   `set_state` in `pump_comm.py`). The commanded travel is
+   ```
+   L_set = Q · t / (π · (D/2)²)
+   ```
+   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 15 min → **L_set ≈ 23 mm** (keep units
+   consistent).
+3. Read the **actual travel `L_real`**. Repeat 2–3× and average to shrink the reading scatter.
+4. If `L_real ≈ L_set`, the mechanics are good. Otherwise correct the **lead-screw pitch** (`THREADROD`,
+   via `set_threadrod`): `threadrod_corr = threadrod × (L_real / L_set)`. The firmware derives steps/mm
+   from `microstep`, `gearbox` and `threadrod`, so `threadrod` is the knob to trim.
+
+**No caliper?** Even a **ruler** works — just run longer so the move is ~50–100 mm and the coarser
+reading stays a small fraction of the distance.
 
 ## Step 2 — Prepare the gravimetric run
 
