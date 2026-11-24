@@ -115,7 +115,8 @@ increase the diameter. The calculator <code>calibrate.py</code> does the math; y
 <h2 id="step-1-calibrate-the-pump-mechanics-plunger-travel">Step 1 — Calibrate the pump mechanics (plunger travel)</h2>
 <p>First check the mechanics on their own: <em>does the drive head move the distance you command?</em> This is
 the <strong>displacement method</strong> of EURAMET CG-27 §4.3.3 — lab version uses a laser interferometer;
-workshop version uses a dial indicator, the same measurement a 3D printer uses to set axis steps/mm.</p>
+workshop version uses a dial indicator (command a known move, measure the real travel, correct the
+firmware's steps/mm — exactly how a 3D-printer axis is calibrated).</p>
 <ol>
 <li>Mount a <strong>dial indicator</strong> (or caliper) against the drive head / carriage and <strong>zero it</strong>. Run the
    pump empty — this test is purely mechanical.</li>
