@@ -41,7 +41,8 @@ increase the diameter. The calculator `calibrate.py` does the math; you just typ
 
 First check the mechanics on their own: *does the drive head move the distance you command?* This is
 the **displacement method** of EURAMET CG-27 §4.3.3 — lab version uses a laser interferometer;
-workshop version uses a dial indicator, the same measurement a 3D printer uses to set axis steps/mm.
+workshop version uses a dial indicator (command a known move, measure the real travel, correct the
+firmware's steps/mm — exactly how a 3D-printer axis is calibrated).
 
 1. Mount a **dial indicator** (or caliper) against the drive head / carriage and **zero it**. Run the
    pump empty — this test is purely mechanical.
