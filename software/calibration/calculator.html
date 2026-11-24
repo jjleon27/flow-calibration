@@ -84,7 +84,7 @@
       </div>
       <div class="field">
         <label for="mrod">Lead-screw pitch <span class="hint">(mm, current THREADROD)</span></label>
-        <input id="mrod" type="number" step="0.1" inputmode="decimal" value="8.0">
+        <input id="mrod" type="number" step="0.1" inputmode="decimal" value="2.0">
       </div>
       <div class="field full">
         <label for="mreal">Measured travel L_real <span class="hint">(mm, caliper/indicator)</span></label>
@@ -164,7 +164,8 @@
 
   <p class="note muted">Mechanics = EURAMET CG-27 §4.3.3 displacement method (dial indicator / caliper).
     Gravimetric = ISO&nbsp;4787-style; needs only an analytical balance. Verify linearity over ≥3 flow
-    points (×3 each). Firmware pitch (THREADROD) is stored in tenths of mm, e.g. 8.0&nbsp;mm = 80.</p>
+    points (×3 each). This pump uses a T8 lead screw, 2.0&nbsp;mm pitch (firmware stores it in tenths,
+    so THREADROD = 20).</p>
 </div>
 
 <script>
