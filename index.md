@@ -15,8 +15,8 @@ D_real = D₀ · √(Q_real / Q_set)
 ```
 
 If the balance reads **more** than programmed → the syringe is **wider** than you told the pump →
-increase the diameter. A **web calculator** (and `calibrate.py`) do the math for **both** steps —
-the mechanics (Step 1) and the diameter (Steps 2–5); you just type the numbers you measured.
+increase the diameter. **Two web calculators** (and `calibrate.py`) do the math — one for the
+**mechanics** (Step 1) and one for the **diameter** (Steps 2–5); you just type the numbers you measured.
 
 ---
 
@@ -47,7 +47,7 @@ the mechanics (Step 1) and the diameter (Steps 2–5); you just type the numbers
 > with the same syringe diameter. A wrong `gearbox` shows up below as a clean ~25× / 100× travel error,
 > a wrong `rod` as ~4× (see the troubleshooting table).
 
-➡️ **[Open the web calculator](software/calibration/calculator.html)** — Step 1: enter flow, time, diameter and start/end readings → expected travel, error, corrected THREADROD.
+➡️ **[Open the mechanics calculator](software/calibration/calculator-mechanics.html)** — enter flow, time, diameter and start/end readings → expected travel, error, corrected THREADROD.
 
 First check the mechanics on their own: *does the drive head move the distance it should?* This is the
 **displacement method** of EURAMET CG-27 §4.3.3 (lab version: laser interferometer; workshop version:
@@ -122,7 +122,7 @@ Aim for **Δm ≥ 100 mg** (e.g. 10 min at 1000 µL/h ≈ 167 mg → <1 % uncert
 
 ## Step 4 — Compute the corrected diameter
 
-➡️ **[Open the web calculator](software/calibration/calculator.html)** — Steps 2–5: type the weighed values, get the corrected diameter.
+➡️ **[Open the diameter calculator](software/calibration/calculator.html)** — Steps 2–5: type the weighed values, get the corrected diameter.
 
 ```bash
 python3 calibrate.py --d0 8.94 --qset 1000 --mass 170.5 --minutes 10 --temp 20
