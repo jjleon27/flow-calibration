@@ -179,27 +179,42 @@
   /* ---------- Step 1 — mechanics ---------- */
   function fmtPct(p){return (p>=0?"+":"")+p.toFixed(1)+" %";}
   function area(d){return Math.PI*(d/2)*(d/2);}  // mm²
+  function nearestFactor(r){            // r ≥ 1 — map a clean off-factor to the likely wrong setting
+    const c=[{f:2,why:"microstep"},{f:4,why:"rod (1-star 2 mm vs 4-star 8 mm), or microstep"},
+      {f:8,why:"microstep"},{f:25,why:"gearbox"},{f:100,why:"gearbox"}];
+    let best=null,bd=1e9; c.forEach(x=>{const d=Math.abs(r-x.f)/x.f; if(d<bd){bd=d;best=x;}});
+    return bd<0.15?best:null;
+  }
   function mech(){
     const q=parseFloat($("mq").value), t=parseFloat($("mt").value),
       d=parseFloat($("md").value), rod=parseFloat($("mrod").value),
       s=parseFloat($("mstart").value), e=parseFloat($("mend").value);
     const ok=[q,t,d].every(x=>isFinite(x)&&x>0);
+    const dflt="Run ≥ 15 min (the longer it runs, the smaller the % reading error). L_real = |end − start|.";
     if(!ok){$("lset").textContent="— mm";$("lsetsub").textContent="set Q, time and diameter above";
-      $("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";return;}
+      $("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";
+      $("rodrow").style.display="none";$("mnote").textContent=dflt;return;}
     const lset=(q*(t/60))/area(d);               // µL / mm² = mm  (1 µL = 1 mm³)
     $("lset").textContent=lset.toFixed(2)+" mm";
     $("lsetsub").textContent="at "+q+" µL/h · "+t+" min · Ø"+d.toFixed(2)+" mm";
     const real=(isFinite(s)&&isFinite(e))?Math.abs(e-s):NaN;   // L_real = |end − start|
-    if(isFinite(real)&&real>0){
-      $("realrow").style.display="flex";$("realv").textContent=real.toFixed(2)+" mm";
-      const err=100*(real/lset-1);
-      const ep=$("merrpill");ep.textContent=fmtPct(err);ep.className="pill "+(Math.abs(err)<=1?"ok":"hi");
-      if(isFinite(rod)&&rod>0){
-        const rodc=rod*(real/lset);
-        $("rodrow").style.display="flex";
-        $("rodv").innerHTML=rodc.toFixed(3)+' mm <span class="muted">(was '+rod.toFixed(2)+")</span>";
-      }else{$("rodrow").style.display="none";}
-    }else{$("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";$("rodrow").style.display="none";}
+    if(!(isFinite(real)&&real>0)){
+      $("realrow").style.display="none";$("merrpill").textContent="—";$("merrpill").className="pill";
+      $("rodrow").style.display="none";$("mnote").textContent=dflt;return;}
+    $("realrow").style.display="flex";$("realv").textContent=real.toFixed(2)+" mm";
+    const err=100*(real/lset-1), a=Math.abs(err);
+    const ep=$("merrpill");ep.textContent=fmtPct(err);ep.className="pill "+(a<=2?"ok":"hi");
+    if(isFinite(rod)&&rod>0){
+      const rodc=rod*(real/lset);
+      $("rodrow").style.display="flex";
+      $("rodv").innerHTML=rodc.toFixed(3)+' mm <span class="muted">(was '+rod.toFixed(2)+")</span>";
+    }else{$("rodrow").style.display="none";}
+    let msg;
+    if(a<=2){msg="✓ Mechanics OK — leave THREADROD as is. The diameter from Step 2 is then the real bore.";}
+    else if(a<=10){msg="Borderline — repeat 2–3× and average; if it persists, set the corrected THREADROD above.";}
+    else{const rr=real>lset?real/lset:lset/real, nf=nearestFactor(rr);
+      msg="⚠ Off by ~"+rr.toFixed(1)+"× — a setting is likely wrong"+(nf?": check "+nf.why+".":": check gearbox, rod and microstep.");}
+    $("mnote").textContent=msg;
   }
   ["mq","mt","md","mrod","mstart","mend"].forEach(id=>$(id).addEventListener("input",mech));
 
