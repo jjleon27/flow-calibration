@@ -1,8 +1,9 @@
 # Calibrating a syringe pump by gravimetry
 
-Delivered flow depends on two things: **how far the drive head travels** (pump mechanics) and the
-**syringe bore** you program. Weighing the water measures only their *product*, so calibrate them
-**in order** — do it backwards and a mechanics error hides inside a wrong "effective diameter":
+Delivered flow depends on two things: **how far the drive head travels** (the *pump mechanics* — the
+carriage that pushes the syringe plunger) and the **syringe bore** you program. Weighing the water
+measures only their *product*, so calibrate them **in order** — do it backwards and a mechanics error
+hides inside a wrong "effective diameter":
 
 1. **Pump mechanics first** (Step 1) — so the drive head moves the true distance.
 2. **Syringe diameter second** (Steps 2–5) — the balance then corrects the bore alone.
@@ -17,6 +18,12 @@ D_real = D₀ · √(Q_real / Q_set)
 If the balance reads **more** than programmed → the syringe is **wider** than you told the pump →
 increase the diameter. **Two web calculators** (and `calibrate.py`) do the math — one for the
 **mechanics** (Step 1) and one for the **diameter** (Steps 2–5); you just type the numbers you measured.
+
+> **New build? Start here.** This guide assumes your pump is **assembled**, the **firmware flashed**,
+> and the controller **powered and connected**. You enter values (diameter, flow, gearbox, etc.) in one
+> of two ways — use whichever you have: on the **pump's keypad/screen** (settings menu), or from a
+> computer with the serial client **`pump_comm.py`**. You do **not** need the metrology notes (marked
+> *optional*) to follow the steps — they're just the "why".
 
 ---
 
@@ -41,7 +48,8 @@ increase the diameter. **Two web calculators** (and `calibrate.py`) do the math 
 ## Step 1 — Calibrate the pump mechanics (plunger travel)
 
 > **⚙️ First, match the software to this pump.** `gearbox`, `rod` (lead screw) and `microstep` are
-> stored **per pump** and must match the physical hardware. **Re-check them whenever you swap pumps, or
+> stored **per pump** and must match the physical hardware you built — set them on the **keypad menu**
+> or with `set_gearbox` / `set_rod` / `set_microstep`. **Re-check them whenever you swap pumps, or
 > move the controller between a geared and an ungeared pump.** On this lab's pumps: ungeared →
 > `gearbox 1:1`; geared → `gearbox 100:1`; both use the T8 **1-star (2 mm)** rod and `microstep 1/8`,
 > with the same syringe diameter. A wrong `gearbox` shows up below as a clean ~25× / 100× travel error,
@@ -60,7 +68,7 @@ travel comes from `flow × time`:
    syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
    syringe with the mirror on the pusher block; a normal syringe is fine here).
 2. Set the **diameter D** and a **flow Q** and run for a few minutes — **longer = smaller % error**
-   (`set_diameter`, `set_flow`, `set_state` in `pump_comm.py`). The commanded travel is
+   (on the keypad, or `set_diameter`, `set_flow`, `set_state` in `pump_comm.py`). The commanded travel is
    ```
    L_set = Q · t / (π · (D/2)²)
    ```
@@ -99,7 +107,8 @@ check.
 ## Step 3 — Collect the output, weighed (timed collection)
 
 **Prepare the collection tube first:** close the empty Eppendorf, seal the top with **parafilm**,
-pierce a **small hole** with the **sharp tip of scissors** (just big enough for the capillary — keeps
+pierce a **small hole** with the **sharp tip of scissors** (just big enough for the capillary — the
+thin outlet tube from the syringe — keeps
 evaporation low), and stand it on a **small, very light base** (we cut one from packing foam —
 negligible mass, keeps the round-bottom tube upright on the pan). **Weigh it in this final state**
 (tube + parafilm + hole + foam base) → `m_empty`, or tare to zero.
