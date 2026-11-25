@@ -15,7 +15,8 @@ D_real = D₀ · √(Q_real / Q_set)
 ```
 
 If the balance reads **more** than programmed → the syringe is **wider** than you told the pump →
-increase the diameter. The calculator `calibrate.py` does the math; you just type the numbers.
+increase the diameter. A **web calculator** (and `calibrate.py`) do the math for **both** steps —
+the mechanics (Step 1) and the diameter (Steps 2–5); you just type the numbers you measured.
 
 ---
 
@@ -39,6 +40,15 @@ increase the diameter. The calculator `calibrate.py` does the math; you just typ
 
 ## Step 1 — Calibrate the pump mechanics (plunger travel)
 
+> **⚙️ First, match the software to this pump.** `gearbox`, `rod` (lead screw) and `microstep` are
+> stored **per pump** and must match the physical hardware. **Re-check them whenever you swap pumps, or
+> move the controller between a geared and an ungeared pump.** On this lab's pumps: ungeared →
+> `gearbox 1:1`; geared → `gearbox 100:1`; both use the T8 **1-star (2 mm)** rod and `microstep 1/8`,
+> with the same syringe diameter. A wrong `gearbox` shows up below as a clean ~25× / 100× travel error,
+> a wrong `rod` as ~4× (see the troubleshooting table).
+
+➡️ **[Open the web calculator](software/calibration/calculator.html)** — Step 1: enter flow, time, diameter and start/end readings → expected travel, error, corrected THREADROD.
+
 First check the mechanics on their own: *does the drive head move the distance it should?* This is the
 **displacement method** of EURAMET CG-27 §4.3.3 (lab version: laser interferometer; workshop version:
 a caliper or dial indicator — exactly how a 3D-printer axis's steps/mm is calibrated).
@@ -49,13 +59,13 @@ travel comes from `flow × time`:
 1. Mount a **caliper or dial indicator** against the drive head / carriage and **zero it**. Keep a
    syringe mounted, dispensing to waste, as in a normal run (metrology labs use a rigid glass/steel
    syringe with the mirror on the pusher block; a normal syringe is fine here).
-2. Set the **diameter D** and a **flow Q** and run for **5 minutes** (`set_diameter`, `set_flow`,
-   `set_state` in `pump_comm.py`). The commanded travel is
+2. Set the **diameter D** and a **flow Q** and run for a few minutes — **longer = smaller % error**
+   (`set_diameter`, `set_flow`, `set_state` in `pump_comm.py`). The commanded travel is
    ```
    L_set = Q · t / (π · (D/2)²)
    ```
-   e.g. D = 9.05 mm, Q = 6000 µL/h (the pump's max), t = 5 min → **L_set ≈ 7.8 mm** (keep units
-   consistent).
+   e.g. D = 9.05 mm, Q = 3000 µL/h, t = 15 min → **L_set ≈ 11.7 mm** (keep units consistent; the
+   pump's max is 6000 µL/h, and the gearbox does **not** change this travel).
 3. Read the **actual travel `L_real`**. Repeat 2–3× and average to shrink the reading scatter.
 4. If `L_real ≈ L_set`, the mechanics are good. Otherwise correct the **lead-screw pitch** (`THREADROD`,
    via `set_threadrod`): `threadrod_corr = threadrod × (L_real / L_set)`. The firmware derives steps/mm
@@ -63,6 +73,20 @@ travel comes from `flow × time`:
 
 **No caliper?** Even a **ruler** works — just run longer so the move is ~50–100 mm and the coarser
 reading stays a small fraction of the distance.
+
+**If `L_real` comes out very different from `L_set`** — a *clean factor* points to a wrong setting; a
+small % is just real tolerance or reading noise:
+
+| `L_real` vs `L_set` | Likely cause | Fix |
+|---|---|---|
+| ~25× or ~100× off | **Gearbox** set wrong | set it to the pump's real ratio (1:1 / 25:1 / 100:1) |
+| ~4× off | **Rod** wrong (1-star = 2 mm vs 4-star = 8 mm) | set rod to match the physical lead screw |
+| ~2× / 4× / 8× off, gearbox & rod correct | **Microstep** mismatch (driver ≠ firmware) | check microstep — over UART it's normally self-consistent, so this is rare |
+| small (< ~2 %) | lead-screw pitch tolerance or reading noise | tiny `THREADROD` tweak, or repeat 2–3× and average |
+| erratic / not repeatable | loose coupling grub screw, binding, or missed steps | tighten the coupling, check for binding, lower speed / raise motor current |
+
+The web calculator flags these automatically — if the error is large it tells you which parameter to
+check.
 
 ## Step 2 — Prepare the gravimetric run
 
@@ -98,7 +122,7 @@ Aim for **Δm ≥ 100 mg** (e.g. 10 min at 1000 µL/h ≈ 167 mg → <1 % uncert
 
 ## Step 4 — Compute the corrected diameter
 
-➡️ **[Open the web calculator](software/calibration/calculator.html)** — type the weighed values, get the corrected diameter (no install).
+➡️ **[Open the web calculator](software/calibration/calculator.html)** — Steps 2–5: type the weighed values, get the corrected diameter.
 
 ```bash
 python3 calibrate.py --d0 8.94 --qset 1000 --mass 170.5 --minutes 10 --temp 20
@@ -195,4 +219,4 @@ For the flow-sensor hardware, firmware and high-rate acquisition, see the Rio co
 > displacement-method papers above.
 
 ---
-*Tool: `calibrate.py` · rev 2026-11-24*
+*Tools: web calculator (`calculator.html`, mechanics + gravimetric) and `calibrate.py` · rev 2026-11-25*
