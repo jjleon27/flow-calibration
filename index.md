@@ -19,12 +19,6 @@ If the balance reads **more** than programmed → the syringe is **wider** than 
 increase the diameter. **Two web calculators** (and `calibrate.py`) do the math — one for the
 **mechanics** (Step 1) and one for the **diameter** (Steps 2–5); you just type the numbers you measured.
 
-> **New build? Start here.** This guide assumes your pump is **assembled**, the **firmware flashed**,
-> and the controller **powered and connected**. You enter values (diameter, flow, gearbox, etc.) in one
-> of two ways — use whichever you have: on the **pump's keypad/screen** (settings menu), or from a
-> computer with the serial client **`pump_comm.py`**. You do **not** need the metrology notes (marked
-> *optional*) to follow the steps — they're just the "why".
-
 ---
 
 ## Equipment
